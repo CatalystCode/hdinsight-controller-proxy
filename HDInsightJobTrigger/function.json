@@ -4,7 +4,7 @@
       "name": "myQueueItem",
       "type": "queueTrigger",
       "direction": "in",
-      "queueName": "js-queue-items",
+      "queueName": "pending-jobs",
       "connection": "connection_STORAGE"
     },
     {
