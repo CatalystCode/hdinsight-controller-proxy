@@ -1,0 +1,22 @@
+{
+  "name": "hdinsight-controller-proxy",
+  "version": "1.0.0",
+  "description": "A function app, deployed with ARM and controlled by a web service",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CatalystCode/hdinsight-controller-proxy.git"
+  },
+  "author": "Mor Shemesh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CatalystCode/hdinsight-controller-proxy/issues"
+  },
+  "homepage": "https://github.com/CatalystCode/hdinsight-controller-proxy#readme",
+  "dependencies": {
+    "request": "^2.74.0"
+  }
+}

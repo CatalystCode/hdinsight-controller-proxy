@@ -1,35 +1,58 @@
+var request = require('request');
+
 module.exports = function (context, myQueueItem) {
-    context.log('Node.js queue trigger function processed work item', myQueueItem);
+    context.log('Sending', myQueueItem, 'to livy...');
     
-    context.bindings.outputQueueItem = { 
-      some_text: 'hello world', 
-      data: myQueueItem };
+    // Outputting to output queue to keep history
+    context.bindings.outputQueueItem = myQueueItem;
     
-    return context.done();
+    var config = null;
+    try {
+      config = require('../../../../lib/config');
+    } catch (e) {
+      console.error(e);
+    }
 
-    // function postToLivy(callback) {
-    //   var authenticationHeader = 'Basic ' + new Buffer(config.clusterLoginUserName + ':' + config.clusterLoginPassword).toString('base64');
-    //   var options = {
-    //     uri: 'https://' + config.clusterName + '.azurehdinsight.net/livy/batches',
-    //     method: 'GET',
-    //     headers: { "Authorization": authenticationHeader },
-    //     json: { }
-    //   };
+    return postToLivy(context.done);
 
-    //   context.log('Checking livy state');
-    //   request(options, function (err, response, body) {
+    function postToLivy(callback) {
+      var authenticationHeader = 'Basic ' + new Buffer(config.clusterLoginUserName + ':' + config.clusterLoginPassword).toString('base64');
+      var options = {
+        uri: 'https://' + config.clusterName + '.azurehdinsight.net/livy/batches',
+        method: 'POST',
+        headers: { "Authorization": authenticationHeader },
+        json: { }
+      };
 
-    //     if (err || !response || response.statusCode != 200) {
-    //       status.livyError = err ? err : !response ? 
-    //         new Error ('No response received') :
-    //         new Error ('Status code is not 200');
-    //       return callback();
-    //     }
+      var options = {
+        url: constants.LIVY_URL,
+        method: 'POST',
+        headers: {
+          "Content-Type": 'application/json', 
+          "Authorization": authenticationHeader 
+        },
+        json: {
+            "file": "wasb://" + config.clusterName + "@" + config.clusterStorageAccountName + ".blob.core.windows.net/" + config.localFileToRun, // file to run
+            "args": [], // args to give to the job file
+            "name": "new-job-name" // job name
+        }
+      };
 
-    //     // Need to check validity and probably filter only running jobs
-    //     status.livyJobs = response.batches.length;
-    //     context.log('livy jobs: ' + status.livyJobs);
-    //     return callback();
-    //   });
-    // }
+      context.log('Checking livy state');
+      request(options, function (err, response, body) {
+
+        if (err || !response || response.statusCode != 200) {
+          var error = err ? err : !response ? 
+            new Error ('No response received') :
+            new Error ('Status code is not 200');
+          return callback(error);
+        }
+
+        if (!body || body.state !== 'running') {
+          return callback(new Error('new job state is not running: ' + JSON.stringify(body)));          
+        }
+
+        return callback();
+      });
+    }
 };
