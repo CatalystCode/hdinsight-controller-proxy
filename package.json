@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/CatalystCode/hdinsight-controller-proxy#readme",
   "dependencies": {
+    "nconf": "^0.8.4",
     "request": "^2.74.0"
   }
 }

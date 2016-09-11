@@ -1,19 +1,52 @@
 var request = require('request');
+var logModule = require('../lib/log');
+var globalConfig = require('../config');
+var config = globalConfig.svc;
 
 module.exports = function (context, myQueueItem) {
-    context.log('Sending', myQueueItem, 'to livy...');
+    log('Sending', myQueueItem, 'to livy...');
     
     // Outputting to output queue to keep history
     context.bindings.outputQueueItem = myQueueItem;
+
+    log('Initializing logging...')
+    return init(function (err) {
+      if (err) {
+        error('Error initializing logging:', err);
+        return context.done(err);
+      }
+
+      log('Initializing logging successfully');
+      return postToLivy(context.done);
+    });
+
+    function init(callback) {
     
-    var config = null;
-    try {
-      config = require('../../../../lib/config');
-    } catch (e) {
-      console.error(e);
+      logModule.init({
+        domain: process.env.COMPUTERNAME || '',
+        instanceId: logModule.getInstanceId(),
+        app: globalConfig.apps.proxy.name,
+        level: globalConfig.log.level,
+        transporters: globalConfig.log.transporters
+      },
+        function(err) {
+          if (err) {
+            error(err);
+            return callback(err);
+          }
+          return callback();
+        });
     }
 
-    return postToLivy(context.done);
+    function log() {
+      context.log.apply(this, arguments);
+      console.log.apply(this, arguments)      
+    }
+
+    function error() {
+      context.error.apply(this, arguments)
+      console.error.apply(this, arguments)      
+    }
 
     function postToLivy(callback) {
       var authenticationHeader = 'Basic ' + new Buffer(config.clusterLoginUserName + ':' + config.clusterLoginPassword).toString('base64');
@@ -38,7 +71,7 @@ module.exports = function (context, myQueueItem) {
         }
       };
 
-      context.log('Checking livy state');
+      log('Checking livy state');
       request(options, function (err, response, body) {
 
         if (err || !response || response.statusCode != 200) {
