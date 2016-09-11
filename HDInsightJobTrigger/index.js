@@ -50,15 +50,9 @@ module.exports = function (context, myQueueItem) {
 
     function postToLivy(callback) {
       var authenticationHeader = 'Basic ' + new Buffer(config.clusterLoginUserName + ':' + config.clusterLoginPassword).toString('base64');
-      var options = {
-        uri: 'https://' + config.clusterName + '.azurehdinsight.net/livy/batches',
-        method: 'POST',
-        headers: { "Authorization": authenticationHeader },
-        json: { }
-      };
 
       var options = {
-        url: constants.LIVY_URL,
+        uri: 'https://' + config.clusterName + '.azurehdinsight.net/livy/batches',
         method: 'POST',
         headers: {
           "Content-Type": 'application/json', 
