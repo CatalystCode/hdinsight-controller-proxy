@@ -4,6 +4,8 @@ var globalConfig = require('../config');
 var config = globalConfig.svc;
 
 module.exports = function (context, myQueueItem) {
+
+  try {
     log('Sending', myQueueItem, 'to livy...');
     
     // Outputting to output queue to keep history
@@ -19,36 +21,42 @@ module.exports = function (context, myQueueItem) {
       log('Initializing logging successfully');
       return postToLivy(context.done);
     });
+  } catch (err) {
+    error('There was an error running the proxy app', err);
+    return context.done(err);
+  }
 
-    function init(callback) {
-    
-      logModule.init({
-        domain: process.env.COMPUTERNAME || '',
-        instanceId: logModule.getInstanceId(),
-        app: globalConfig.apps.proxy.name,
-        level: globalConfig.log.level,
-        transporters: globalConfig.log.transporters
-      },
-        function(err) {
-          if (err) {
-            error(err);
-            return callback(err);
-          }
-          return callback();
-        });
-    }
+  function init(callback) {
+  
+    logModule.init({
+      domain: process.env.COMPUTERNAME || '',
+      instanceId: logModule.getInstanceId(),
+      app: globalConfig.apps.proxy.name,
+      level: globalConfig.log.level,
+      transporters: globalConfig.log.transporters
+    },
+      function(err) {
+        if (err) {
+          error(err);
+          return callback(err);
+        }
+        return callback();
+      });
+  }
 
-    function log() {
-      context.log.apply(this, arguments);
-      console.log.apply(this, arguments)      
-    }
+  function log() {
+    context.log.apply(this, arguments);
+    console.log.apply(this, arguments)      
+  }
 
-    function error() {
-      context.error.apply(this, arguments)
-      console.error.apply(this, arguments)      
-    }
+  function error() {
+    context.error.apply(this, arguments)
+    console.error.apply(this, arguments)      
+  }
 
-    function postToLivy(callback) {
+  function postToLivy(callback) {
+
+    try {
       var authenticationHeader = 'Basic ' + new Buffer(config.clusterLoginUserName + ':' + config.clusterLoginPassword).toString('base64');
 
       var options = {
@@ -69,10 +77,10 @@ module.exports = function (context, myQueueItem) {
       request(options, function (err, response, body) {
 
         if (err || !response || response.statusCode != 200) {
-          var error = err ? err : !response ? 
+          var errMsg = err ? err : !response ? 
             new Error ('No response received') :
             new Error ('Status code is not 200');
-          return callback(error);
+          return callback(errMsg);
         }
 
         if (!body || body.state !== 'running') {
@@ -81,5 +89,9 @@ module.exports = function (context, myQueueItem) {
 
         return callback();
       });
+    } catch (err) {
+      error('There was a problem pointing to LIVY', err);
+      callback(err);
     }
+  }
 };
