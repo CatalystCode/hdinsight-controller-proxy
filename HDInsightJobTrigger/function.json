@@ -5,13 +5,13 @@
       "type": "queueTrigger",
       "direction": "in",
       "queueName": "pending-jobs",
-      "connection": "connection_STORAGE"
+      "connection": "AzureWebJobsStorage"
     },
     {
       "type": "queue",
       "name": "outputQueueItem",
       "queueName": "outqueue",
-      "connection": "connection_STORAGE",
+      "connection": "AzureWebJobsStorage",
       "direction": "out"
     }
   ],
