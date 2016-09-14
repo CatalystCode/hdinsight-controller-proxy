@@ -135,6 +135,7 @@ var config = {
   },
   apps: {
     console: { name: 'console', desc: 'the command line console web app' },
+    orch: { name: 'orch', desc: 'The web job acting as the orchestration service' },
     proxy: { name: 'proxy', desc: 'The function app acting as the proxy service' }
   },
   queue: {
