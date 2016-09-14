@@ -75,28 +75,23 @@ module.exports = function (context, myQueueItem) {
 
       log('Checking livy state');
 
-      try {
-        request(options, function (err, response, body) {
+      request(options, function (err, response, body) {
 
-          if (err || !response || response.statusCode != 200) {
-            var errMsg = err ? err : !response ? 
-              new Error ('No response received') :
-              new Error ('Status code is not 200');
-            return callback(errMsg);
-          }
+        if (err || !response || response.statusCode != 200) {
+          var errMsg = err ? err : !response ? 
+            new Error ('No response received') :
+            new Error ('Status code is not 200');
+          return callback(errMsg);
+        }
 
-          if (!body || body.state !== 'running') {
-            return callback(new Error('new job state is not running: ' + JSON.stringify(body)));          
-          }
+        if (!body || body.state !== 'running') {
+          return callback(new Error('new job state is not running: ' + JSON.stringify(body)));          
+        }
 
-          return callback();
-        });
-      } catch (err) {
-        error('There was a problem posting to LIVY', err);
-        callback(err);
-      }
+        return callback();
+      });
     } catch (err) {
-      error('There was a problem pointing to LIVY', err);
+      error('There was a problem posting to LIVY', err);
       callback(err);
     }
   }
