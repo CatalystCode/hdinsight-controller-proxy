@@ -73,7 +73,7 @@ module.exports = function (context, myQueueItem) {
         }
       };
 
-      log('Checking livy state');
+      log('Posting to livy');
 
       request(options, function (err, response, body) {
 
@@ -85,9 +85,12 @@ module.exports = function (context, myQueueItem) {
         }
 
         if (!body || body.state !== 'running') {
-          return callback(new Error('new job state is not running: ' + JSON.stringify(body)));          
+          var err = new Error('new job state is not running: ' + JSON.stringify(body));
+          error(err);
+          return callback(err);
         }
 
+        log('Submitted successfully');
         return callback();
       });
     } catch (err) {

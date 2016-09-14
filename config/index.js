@@ -136,6 +136,10 @@ var config = {
   apps: {
     console: { name: 'console', desc: 'the command line console web app' },
     proxy: { name: 'proxy', desc: 'The function app acting as the proxy service' }
+  },
+  queue: {
+    visibilityTimeoutSecs: nconfig.get('QUEUE_VISIBILITY_TIMEOUT_SECS') ? parseInt(nconfig.get('QUEUE_VISIBILITY_TIMEOUT_SECS')) : 300,
+    checkFrequencyMsecs: nconfig.get('QUEUE_CHECK_FREQUENCY_MSECS') ? parseInt(nconfig.get('QUEUE_CHECK_FREQUENCY_MSECS')) : 5000
   }
 };
 
